@@ -1,5 +1,6 @@
 # Utility functions, including the Baostock login context manager and logging setup
 import baostock as bs
+
 import os
 import sys
 import logging
@@ -19,6 +20,45 @@ def setup_logging(level=logging.INFO):
 
 # Get a logger instance for this module (optional, but good practice)
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def tushare_login_context():
+    """Context manager to handle Tushare login and API initialization."""
+    # Redirect stdout to suppress any potential messages
+    original_stdout_fd = sys.stdout.fileno()
+    saved_stdout_fd = os.dup(original_stdout_fd)
+    devnull_fd = os.open(os.devnull, os.O_WRONLY)
+
+    os.dup2(devnull_fd, original_stdout_fd)
+    os.close(devnull_fd)
+
+    
+    import tushare as ts
+    from dotenv import load_dotenv
+        
+    # 加载环境变量
+    load_dotenv()
+    token = os.getenv('TUSHARE_TOKEN')
+    if not token:
+        raise LoginError("请在 .env 文件中设置 TUSHARE_TOKEN")
+
+    # 设置 token
+    ts.set_token(token)
+    # 初始化 pro 接口
+    pro = ts.pro_api()
+
+    # Restore stdout
+    os.dup2(saved_stdout_fd, original_stdout_fd)
+    os.close(saved_stdout_fd)
+    try:
+        yield pro  # 返回 pro 接口实例供使用
+    except Exception as e:
+        raise LoginError(f"Tushare login failed: {str(e)}")
+    finally:
+        # Restore stdout
+        os.dup2(saved_stdout_fd, original_stdout_fd)
+        os.close(saved_stdout_fd)
 
 # --- Baostock Context Manager ---
 @contextmanager
