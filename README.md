@@ -1,3 +1,10 @@
+---
+title: stock mcp
+emoji: 📈
+app_file: src/mcp_server_tushare.py
+pinned: false
+sdk: docker
+---
 <div align="center">
 
 # 📊 a-share-mcp 📈
