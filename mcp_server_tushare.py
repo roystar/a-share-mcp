@@ -3,9 +3,11 @@ import logging
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-from fastmcp import FastMCP
-
-import src.tushare_data_source as tushare_data_source
+from fastmcp import FastMCP  # 使用 fastmcp 包的导入
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+import uvicorn
+from src.tushare_data_source import TushareDataSource
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)
@@ -18,14 +20,28 @@ current_date = datetime.now().strftime("%Y-%m-%d")
 app = FastMCP(
     server_name="simple_a_share_provider",
     description=f"""今天是{current_date}。这是一个A股数据提供者。
-    
+
 ⚠️ 重要说明:
 1. 所有数据仅供参考，不构成投资建议
 """
 )
 
+# 定义自定义中间件
+custom_middleware = [
+    Middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # 允许的前端域名
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    ),
+]
+
+# 创建带有自定义中间件的ASGI应用
+app_http = app.http_app(middleware=custom_middleware, transport="sse")  # 使用 create_app 方法
+
 # 创建数据源实例
-data_source = tushare_data_source.TushareDataSource()
+data_source = TushareDataSource()
 
 @app.tool()
 def get_stock_basic() -> str:
@@ -38,4 +54,4 @@ def get_stock_basic() -> str:
 
 if __name__ == "__main__":
     logger.info(f"启动A股MCP服务器... 今天是 {current_date}")
-    app.run(transport="streamable-http", host="127.0.0.1", port=9000)
+    uvicorn.run(app_http, host="127.0.0.1", port=9000)

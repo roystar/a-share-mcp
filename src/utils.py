@@ -33,10 +33,9 @@ def tushare_login_context():
     os.dup2(devnull_fd, original_stdout_fd)
     os.close(devnull_fd)
 
-    
     import tushare as ts
     from dotenv import load_dotenv
-        
+    
     # 加载环境变量
     load_dotenv()
     token = os.getenv('TUSHARE_TOKEN')
@@ -55,10 +54,6 @@ def tushare_login_context():
         yield pro  # 返回 pro 接口实例供使用
     except Exception as e:
         raise LoginError(f"Tushare login failed: {str(e)}")
-    finally:
-        # Restore stdout
-        os.dup2(saved_stdout_fd, original_stdout_fd)
-        os.close(saved_stdout_fd)
 
 # --- Baostock Context Manager ---
 @contextmanager

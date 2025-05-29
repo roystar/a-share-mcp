@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 async def list_available_tools():
     """列出所有可用的工具函数"""
     try:
-        # 创建客户端
+        # 创建客户端 - 使用SSE方式连接
         client = Client("http://127.0.0.1:9000/mcp")
         
         # 连接服务器
