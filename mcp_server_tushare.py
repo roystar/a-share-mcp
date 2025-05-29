@@ -8,6 +8,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 import uvicorn
 from src.tushare_data_source import TushareDataSource
+from src.tools.financial_reports import register_financial_report_tools
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +43,8 @@ app_http = app.http_app(middleware=custom_middleware, transport="sse")  # 使用
 
 # 创建数据源实例
 data_source = TushareDataSource()
+
+register_financial_report_tools(app, data_source)
 
 @app.tool()
 def get_stock_basic() -> str:
