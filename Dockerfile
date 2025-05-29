@@ -10,6 +10,8 @@ WORKDIR /app
 RUN chown -R user:user .
 
 COPY . .
+RUN pip install --upgrade pip
+RUN pip install uv
 RUN uv venv
 RUN source .venv/bin/activate
 RUN uv sync
