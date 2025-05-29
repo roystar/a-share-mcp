@@ -45,6 +45,36 @@ class TushareDataSource(FinancialDataSource):
         logger.debug(f"使用请求的字段: {fields}")
         return ",".join(fields)
 
+    def _convert_stock_code(self, code: str) -> str:
+        """转换股票代码格式
+        
+        将 sh/sz 开头的股票代码转换为 tushare 格式（以 .SH/.SZ 结尾）
+        
+        Args:
+            code: 原始股票代码
+            
+        Returns:
+            str: 转换后的股票代码
+        """
+        if not code:
+            return code
+            
+        code = code.upper()
+        if code.startswith('SH'):
+            return f"{code[3:]}.SH"
+        elif code.startswith('SZ'):
+            return f"{code[3:]}.SZ"
+        elif code.endswith('.SH') or code.endswith('.SZ'):
+            return code
+        else:
+            # 如果没有前缀，根据股票代码规则判断
+            if code.startswith('6'):
+                return f"{code}.SH"
+            elif code.startswith(('0', '3')):
+                return f"{code}.SZ"
+            else:
+                return code
+
     def get_all_stock(self) -> pd.DataFrame:
         """获取所有股票列表"""
         logger.info("获取所有股票列表")
@@ -170,9 +200,10 @@ class TushareDataSource(FinancialDataSource):
         logger.info(f"获取股票 {code} 的基本信息")
         try:
             formatted_fields = self._format_fields(fields, DEFAULT_BASIC_FIELDS)
+            converted_code = self._convert_stock_code(code)
             
             with tushare_login_context() as pro:
-                df = pro.stock_basic(ts_code=code, fields=formatted_fields)
+                df = pro.stock_basic(ts_code=converted_code, fields=formatted_fields)
                 if df is None or df.empty:
                     raise NoDataFoundError(f"未找到股票 {code} 的基本信息")
                 
@@ -208,17 +239,18 @@ class TushareDataSource(FinancialDataSource):
         logger.info(f"获取股票 {code} 的K线数据 ({start_date} 至 {end_date})")
         try:
             formatted_fields = self._format_fields(fields, DEFAULT_K_FIELDS)
+            converted_code = self._convert_stock_code(code)
             
             with tushare_login_context() as pro:
                 # 根据频率选择不同的API
                 if frequency == "d":
-                    df = pro.daily(ts_code=code, start_date=start_date, end_date=end_date, 
+                    df = pro.daily(ts_code=converted_code, start_date=start_date, end_date=end_date, 
                                  fields=formatted_fields)
                 elif frequency == "w":
-                    df = pro.weekly(ts_code=code, start_date=start_date, end_date=end_date,
+                    df = pro.weekly(ts_code=converted_code, start_date=start_date, end_date=end_date,
                                   fields=formatted_fields)
                 elif frequency == "m":
-                    df = pro.monthly(ts_code=code, start_date=start_date, end_date=end_date,
+                    df = pro.monthly(ts_code=converted_code, start_date=start_date, end_date=end_date,
                                    fields=formatted_fields)
                 else:
                     raise ValueError(f"不支持的频率类型: {frequency}")
@@ -228,7 +260,7 @@ class TushareDataSource(FinancialDataSource):
                 
                 # 处理复权
                 if adjust_flag != "0":  # 0表示不复权
-                    df = pro.adj_factor(ts_code=code, start_date=start_date, end_date=end_date)
+                    df = pro.adj_factor(ts_code=converted_code, start_date=start_date, end_date=end_date)
                     if df is not None and not df.empty:
                         # 合并复权因子
                         df = pd.merge(df, df, on=['ts_code', 'trade_date'])
@@ -267,12 +299,13 @@ class TushareDataSource(FinancialDataSource):
         """
         logger.info(f"获取股票 {code} 的利润表数据 ({year}年Q{quarter})")
         try:
+            converted_code = self._convert_stock_code(code)
             with tushare_login_context() as pro:
                 # 根据季度确定日期范围
                 start_date = f"{year}{quarter*3-2:02d}01"
                 end_date = f"{year}{quarter*3:02d}31"
                 
-                df = pro.income(ts_code=code, start_date=start_date, end_date=end_date)
+                df = pro.income(ts_code=converted_code, start_date=start_date, end_date=end_date)
                 if df is None or df.empty:
                     raise NoDataFoundError(f"未找到股票 {code} 的利润表数据")
                 
@@ -295,12 +328,14 @@ class TushareDataSource(FinancialDataSource):
         """
         logger.info(f"获取股票 {code} 的财务指标数据 ({year}年Q{quarter})")
         try:
+            converted_code = self._convert_stock_code(code)
+            print(f"转换后的股票代码: {converted_code}")
             with tushare_login_context() as pro:
                 # 根据季度确定日期范围
                 start_date = f"{year}{quarter*3-2:02d}01"
                 end_date = f"{year}{quarter*3:02d}31"
                 
-                df = pro.fina_indicator(ts_code=code, start_date=start_date, end_date=end_date)
+                df = pro.fina_indicator(ts_code=converted_code, start_date=start_date, end_date=end_date)
                 if df is None or df.empty:
                     raise NoDataFoundError(f"未找到股票 {code} 的财务指标数据")
                 
@@ -336,12 +371,13 @@ class TushareDataSource(FinancialDataSource):
         """
         logger.info(f"获取股票 {code} 的资产负债表数据 ({year}年Q{quarter})")
         try:
+            converted_code = self._convert_stock_code(code)
             with tushare_login_context() as pro:
                 # 根据季度确定日期范围
                 start_date = f"{year}{quarter*3-2:02d}01"
                 end_date = f"{year}{quarter*3:02d}31"
                 
-                df = pro.balancesheet(ts_code=code, start_date=start_date, end_date=end_date)
+                df = pro.balancesheet(ts_code=converted_code, start_date=start_date, end_date=end_date)
                 if df is None or df.empty:
                     raise NoDataFoundError(f"未找到股票 {code} 的资产负债表数据")
                 
@@ -364,12 +400,13 @@ class TushareDataSource(FinancialDataSource):
         """
         logger.info(f"获取股票 {code} 的现金流量表数据 ({year}年Q{quarter})")
         try:
+            converted_code = self._convert_stock_code(code)
             with tushare_login_context() as pro:
                 # 根据季度确定日期范围
                 start_date = f"{year}{quarter*3-2:02d}01"
                 end_date = f"{year}{quarter*3:02d}31"
                 
-                df = pro.cashflow(ts_code=code, start_date=start_date, end_date=end_date)
+                df = pro.cashflow(ts_code=converted_code, start_date=start_date, end_date=end_date)
                 if df is None or df.empty:
                     raise NoDataFoundError(f"未找到股票 {code} 的现金流量表数据")
                 
@@ -405,8 +442,9 @@ class TushareDataSource(FinancialDataSource):
         """
         logger.info(f"获取股票 {code} 的业绩快报数据 ({start_date} 至 {end_date})")
         try:
+            converted_code = self._convert_stock_code(code)
             with tushare_login_context() as pro:
-                df = pro.express(ts_code=code, start_date=start_date, end_date=end_date)
+                df = pro.express(ts_code=converted_code, start_date=start_date, end_date=end_date)
                 if df is None or df.empty:
                     raise NoDataFoundError(f"未找到股票 {code} 的业绩快报数据")
                 
@@ -429,8 +467,9 @@ class TushareDataSource(FinancialDataSource):
         """
         logger.info(f"获取股票 {code} 的业绩预告数据 ({start_date} 至 {end_date})")
         try:
+            converted_code = self._convert_stock_code(code)
             with tushare_login_context() as pro:
-                df = pro.forecast(ts_code=code, period=end_date)
+                df = pro.forecast(ts_code=converted_code, period=end_date)
                 if df is None or df.empty:
                     raise NoDataFoundError(f"未找到股票 {code} 的业绩预告数据")
                 
@@ -452,8 +491,9 @@ class TushareDataSource(FinancialDataSource):
         """
         logger.info(f"获取行业分类数据 (code={code or 'all'}, date={date or 'latest'})")
         try:
+            converted_code = self._convert_stock_code(code) if code else None
             with tushare_login_context() as pro:
-                df = pro.stock_basic(ts_code=code, fields='ts_code,industry')
+                df = pro.stock_basic(ts_code=converted_code, fields='ts_code,industry')
                 if df is None or df.empty:
                     raise NoDataFoundError("未找到行业分类数据")
                 

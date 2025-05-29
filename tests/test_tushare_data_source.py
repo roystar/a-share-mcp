@@ -11,7 +11,7 @@ def data_source():
 @pytest.fixture
 def test_stock_code():
     """测试用的股票代码"""
-    return "000001.SZ"  # 平安银行
+    return "sz.000001"  # 平安银行
 
 @pytest.fixture
 def test_year():
