@@ -46,14 +46,7 @@ data_source = TushareDataSource()
 
 register_financial_report_tools(app, data_source)
 
-@app.tool()
-def get_stock_basic() -> str:
-    """获取所有上市公司的基本信息"""
-    try:
-        df = data_source.get_stock_basic()
-        return df.to_json(orient='records', force_ascii=False)
-    except Exception as e:
-        return f"获取股票基本信息失败: {str(e)}"
+
 
 if __name__ == "__main__":
     logger.info(f"启动A股MCP服务器... 今天是 {current_date}")
