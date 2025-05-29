@@ -39,7 +39,7 @@ custom_middleware = [
 ]
 
 # 创建带有自定义中间件的ASGI应用
-app_http = app.http_app(middleware=custom_middleware, transport="sse", path="/sse")  # 使用 create_app 方法
+app_http = app.http_app(middleware=custom_middleware, transport="sse")  # 使用 create_app 方法
 
 # 创建数据源实例
 data_source = TushareDataSource()
@@ -50,4 +50,4 @@ register_financial_report_tools(app, data_source)
 
 if __name__ == "__main__":
     logger.info(f"启动A股MCP服务器... 今天是 {current_date}")
-    uvicorn.run(app_http, host="0.0.0.0", port=7860)
+    uvicorn.run(app_http, host="0.0.0.0", port=7860,root_path="/sse")
