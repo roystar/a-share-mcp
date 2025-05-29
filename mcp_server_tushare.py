@@ -50,4 +50,4 @@ register_financial_report_tools(app, data_source)
 
 if __name__ == "__main__":
     logger.info(f"启动A股MCP服务器... 今天是 {current_date}")
-    uvicorn.run(app_http, host="0.0.0.0", port=7860,root_path="/sse")
+    uvicorn.run(app_http, host="0.0.0.0", port=7860)
