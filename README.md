@@ -3,7 +3,6 @@ title: stock mcp
 emoji: 📈
 app_file: src/mcp_server_tushare.py
 pinned: false
-app_port:9000
 sdk: docker
 ---
 <div align="center">
