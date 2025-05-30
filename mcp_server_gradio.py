@@ -172,4 +172,4 @@ share_mcp = gr.TabbedInterface(
 if __name__ == "__main__":
     logger.info(f"启动A股财务数据提供者... 今天是 {current_date}")
     # 启动 Gradio 应用
-    share_mcp.launch(mcp_server=True)
+    share_mcp.launch(mcp_server=True, server_name="0.0.0.0", server_port=7860)
