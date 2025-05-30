@@ -8,9 +8,9 @@ FROM python:3.9
 RUN useradd -m -u 1000 user
 WORKDIR /app
 RUN chown -R user:user .
-RUN chmod -R 777 /app
 
 COPY . .
+RUN chmod -R 777 /app
 RUN pip install --upgrade pip
 RUN pip install uv
 #RUN uv venv
