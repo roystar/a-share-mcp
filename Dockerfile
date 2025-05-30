@@ -8,7 +8,7 @@ FROM python:3.9
 RUN useradd -m -u 1000 user
 WORKDIR /app
 RUN chown -R user:user .
-RUN chmod -R 777 /app
+RUN chmod -R 777 .
 
 COPY . .
 RUN pip install --upgrade pip
