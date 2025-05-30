@@ -18,4 +18,4 @@ RUN pip install uv
 
 ENV PYTHONPATH=/app:/app/src
 
-CMD ["uv", "run", "python", "mcp_server_tushare.py"]
+CMD ["uv", "run", "python", "mcp_server_gradio.py"]
