@@ -164,7 +164,7 @@ dupont_interface = gr.Interface(
 )
 
 # 创建标签页界面
-demo = gr.TabbedInterface(
+share_mcp = gr.TabbedInterface(
     interface_list=[profit_interface, balance_interface, cash_flow_interface, dupont_interface],
     tab_names=["利润表", "资产负债表", "现金流量表", "杜邦分析"]
 )
@@ -172,4 +172,4 @@ demo = gr.TabbedInterface(
 if __name__ == "__main__":
     logger.info(f"启动A股财务数据提供者... 今天是 {current_date}")
     # 启动 Gradio 应用
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=True, mcp_server=True)
+    share_mcp.launch(mcp_server=True)
